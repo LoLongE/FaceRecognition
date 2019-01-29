@@ -4,11 +4,6 @@ import warnings
 import Function2
 import threading
 
-
-# Basic performance tweaks to make things run a lot faster:
-#   1. Process each video frame at 1/4 resolution (though still display it at full resolution)
-#   2. Only detect faces in every other frame of video.
-
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
@@ -18,11 +13,8 @@ with warnings.catch_warnings():
         # Grab a single frame of video
         ret, frame = video_capture.read()
         img = cv2.flip(frame, 1)
-        check = 0
-        count = 1
-        # Resize frame of video to 1/4 size for faster face recognition processing
+        # Resize frame of video to 2 size for faster face recognition processing
         small_frame = cv2.resize(img, (0, 0), fx=2.0,  fy=2.0)
-        cv2.imshow('Video', small_frame)
 
         # Hit 'q' on the keyboard to quit!
         k = cv2.waitKey(1)
@@ -38,6 +30,7 @@ with warnings.catch_warnings():
         if k == 27:
             break
 
+        cv2.imshow('Video', small_frame)
     # Release handle to the webcam
     video_capture.release()
     cv2.destroyAllWindows()

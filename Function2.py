@@ -4,7 +4,6 @@ import cv2
 import os
 import pickle
 import datetime
-from datetime import time
 import pymysql
 import pandas as pd
 import csv
@@ -62,7 +61,7 @@ def check_Person(image):
                            db="TEST",
                            charset='utf8')  # name of the data base
     curs = conn.cursor()
-    curs.execute("select stu_name from student,enroll where student.stu_id = enroll.stu_id and course_id = 'cor_1'")
+    curs.execute("select stu_name from student,enroll where student.stu_id = enroll.stu_id and course_id = 'cor_1'") #cor_1 과목을 기준으로 수업듣는 학생의 이름 받아옴
     result = curs.fetchall()
 
     name_result = [] #db에 있는 학생의 이름 가져오기위해
@@ -118,7 +117,7 @@ def check_Person(image):
         cv2.rectangle(small_frame, (left, bottom - 15), (right, bottom), (0, 0, 255), cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-        check_time.append(datetime.datetime.now().strftime('%H:%M:%S'))  # 인식됐을때의 시간 저장
+        check_time.append(getTime(1))  # 인식됐을때의 시간 저장
         check_name.append(name)  # 검출된 사람의 이름 저장
 
     now2 = getTime(0)
@@ -128,12 +127,10 @@ def check_Person(image):
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(small_frame , predictions[i][0],( (i*120)+ 160 ,200), font,1.0,(255,255,255),1)
 
-    tm = datetime.datetime.now()
+    tm = getTime(0)
     dir_time= tm.strftime('%Y-%m-%d')
     dir_time2 = tm.strftime('%Y-%m-%d %H-%M')
     makeDir(dir_time)
-
-
     path = os.getcwd() + "/cor_1"
 
     #해당날짜에 해당하는 폴더가 있으면 기존 폴더를 열어서 처음 검출된 학생의 이름과 시간만 csv파일에 저장
@@ -154,13 +151,13 @@ def check_Person(image):
         dataframe = pd.DataFrame(data)
         dataframe.to_csv("check.csv", mode='a',header=False, index=False)
         for i in range(len(not_in_name)):
-            sql = "select enroll_id from student,enroll where student.stu_id = enroll.stu_id and student.stu_name = %s and course_id = 'cor_1'"
+            sql = "select enroll_id from student,enroll where student.stu_id = enroll.stu_id and student.stu_name = %s and course_id = 'cor_1'" #검출된 학생 중 cor_1의 수업을 듣는 학생의 enroll_id 를 받아옴
             val = not_in_name[i]
             curs.execute(sql, val)
             for row in curs.fetchall():
                 enroll_list.append(row[0])
         if len(not_in_name) >0 :
-            send_query(curs,conn,"insert into attend(enroll_id,enter_time, enter_date, ischeck) values(%s, %s, %s)",enroll_list, not_in_time, dir_time)
+            send_query(curs,conn,"insert into attend(enroll_id, enter_time, enter_date, ischeck) values(%s, %s, %s, %s)",enroll_list, not_in_time, dir_time)
 
     else:
         print("파일 없음")
